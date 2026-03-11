@@ -1,193 +1,222 @@
-# AWS VPC Auto Scaling Architecture Project
+# AWS Scalable Web Application Architecture
 
-This project demonstrates how to deploy a scalable web application in AWS using a secure VPC architecture with private subnets and Auto Scaling.
-
-The infrastructure includes an Application Load Balancer, frontend and backend servers inside private subnets, and MongoDB as the database.
-
-This project was built to understand real-world DevOps infrastructure design including networking, load balancing, auto scaling, and secure server access.
-
----
-
-# Live Application
-
-Frontend  
-https://vpc-setup.codetocloud.fun
-
-API  
-https://vpc-setupapi.codetocloud.fun
+This project demonstrates how to deploy a secure and scalable web application architecture on AWS using best practices for networking, security, and auto scaling.
 
 ---
 
 # Architecture Diagram
 
-![Architecture](/docs/images/architecture/architecture-diagram.png)
+![Architecture Diagram](docs/images/architecture/architecture-diagram.png)
 
 ---
 
-# Architecture Overview
+# Project Walkthrough
 
-The infrastructure is deployed inside an AWS VPC with both public and private subnets.
-
-Public Subnet components:
-
-• Internet Gateway  
-• Bastion Host for SSH access  
-• Application Load Balancer  
-• NAT Gateway  
-
-Private Subnet components:
-
-• Frontend Server (React application served with Nginx)  
-• Backend API Servers (Node.js running behind Auto Scaling Group)  
-• MongoDB Database Server  
-
-All application servers are placed inside private subnets for security.
-
-Traffic flow:
-
-User → Application Load Balancer → Private Servers
+This section explains how the infrastructure was built step by step.
 
 ---
 
-# Domain Routing
+# Step 1 – Create VPC
 
-The Application Load Balancer routes traffic based on the domain name.
+A custom Virtual Private Cloud (VPC) was created to isolate the application infrastructure.
 
-Frontend Route
-
-vpc-setup.codetocloud.fun → Frontend Target Group → Frontend Server
-
-API Route
-
-vpc-setupapi.codetocloud.fun → Backend Target Group → Backend Auto Scaling Instances
-
-SSL certificates are managed using AWS Certificate Manager.
-
----
-
-# Tech Stack
-
-Frontend  
-React  
-Nginx  
-
-Backend  
-Node.js  
-Express.js  
-
-Database  
-MongoDB  
-
-Cloud Infrastructure  
-AWS EC2  
-AWS VPC  
-Application Load Balancer  
-Auto Scaling Group  
-NAT Gateway  
-Internet Gateway  
-AWS ACM  
-
----
-
-# Infrastructure Design
-
-VPC CIDR
+VPC CIDR block:
 
 10.0.0.0/16
 
-Subnets
+All AWS resources for this project are deployed inside this VPC.
 
-Public Subnets
-- Bastion Host
-- ALB
-- NAT Gateway
-
-Private Subnets
-- Frontend Server
-- Backend Auto Scaling Servers
-- MongoDB Server
-
-Security Strategy
-
-• Only Bastion Host allows SSH from internet  
-• Backend servers are accessible only through ALB  
-• MongoDB accessible only from backend servers  
+![VPC Dashboard](docs/images/vpc/vpc-dashboard.png)
 
 ---
 
-# Auto Scaling Configuration
+# Step 2 – Create Public and Private Subnets
 
-Backend servers are deployed using an Auto Scaling Group.
+Inside the VPC, both public and private subnets were created.
+
+Public subnet resources:
+
+* Bastion Host
+* Application Load Balancer
+* NAT Gateway
+
+Private subnet resources:
+
+* Frontend Server
+* Backend API Servers
+* MongoDB Server
+
+This architecture improves security because application servers are not directly accessible from the internet.
+
+![Subnets](docs/images/vpc/subnets.png)
+
+---
+
+# Step 3 – Configure Internet Gateway
+
+An Internet Gateway was attached to the VPC to allow internet access for public resources.
+
+![Internet Gateway](docs/images/vpc/internet-gateway.png)
+
+---
+
+# Step 4 – Configure NAT Gateway
+
+A NAT Gateway was deployed in the public subnet.
+
+Private subnet instances use this NAT Gateway to access the internet for updates and package installation.
+
+![NAT Gateway](docs/images/vpc/nat-gateway.png)
+
+---
+
+# Step 5 – Configure Route Tables
+
+Route tables control how network traffic flows inside the VPC.
+
+Public Route Table routes internet traffic through the Internet Gateway.
+
+![Public Route Table](docs/images/vpc/route-table-public.png)
+
+Private Route Table routes outbound traffic through the NAT Gateway.
+
+![Private Route Table](docs/images/vpc/route-table-private.png)
+
+---
+
+# Step 6 – Deploy EC2 Instances
+
+Multiple EC2 instances were launched for different components of the system.
+
+Instances include:
+
+* Bastion Host
+* Frontend Server
+* Backend Server
+* MongoDB Server
+
+All application servers run inside private subnets.
+
+![EC2 Instances](docs/images/ec2/ALL-EC2.png)
+
+---
+
+# Step 7 – Configure Security Groups
+
+Security groups were configured to control traffic between components.
+
+ALB Security Group allows inbound HTTP and HTTPS traffic.
+
+![ALB Security Group](docs/images/security/alb-sg.png)
+
+Backend Security Group allows traffic only from the load balancer.
+
+![Backend Security Group](docs/images/security/backend-sg.png)
+
+MongoDB Security Group allows traffic only from backend servers.
+
+![MongoDB Security Group](docs/images/security/mongodb-sg.png)
+
+Bastion Security Group allows SSH access.
+
+![Bastion Security Group](docs/images/security/baiston-sg.png)
+
+---
+
+# Step 8 – Create Application Load Balancer
+
+An Application Load Balancer was created to distribute incoming traffic.
+
+![ALB Overview](docs/images/alb/alb-overview.png)
+
+---
+
+# Step 9 – Configure Load Balancer Listeners
+
+HTTP Listener (Port 80)
+
+![HTTP Listener](docs/images/alb/listner-80-http-rules.png)
+
+HTTPS Listener (Port 443)
+
+![HTTPS Listener](docs/images/alb/listener-443-https-rules.png)
+
+---
+
+# Step 10 – Configure Target Groups
+
+Two target groups were created.
+
+Frontend Target Group routes traffic to the frontend server.
+
+![Frontend Target Group](docs/images/alb/frontend-tg.png)
+
+Backend Target Group routes traffic to backend API servers.
+
+![Backend Target Group](docs/images/alb/backend-tg.png)
+
+---
+
+# Step 11 – Configure SSL Certificate
+
+SSL certificates were created and validated to enable HTTPS communication.
+
+![ACM Certificate](docs/images/dns/acm-certificate.png)
+
+---
+
+# Step 12 – Configure Auto Scaling
+
+Backend servers are managed using an Auto Scaling Group.
 
 Configuration:
 
-Minimum instances: 1  
-Desired instances: 1  
-Maximum instances: 3  
+Minimum Instances: 1
+Desired Instances: 1
+Maximum Instances: 3
 
-Scaling Policy:
+This allows backend servers to scale automatically during high traffic.
 
-Scale out when CPU > 60%  
-Scale in when CPU < 30%
-
-When the backend instance CPU increases, the Auto Scaling Group launches new instances automatically.
-
-When load decreases, extra instances are terminated automatically.
+![Auto Scaling Group](docs/images/autoscaling/asg-config.png)
 
 ---
 
-# Deployment Steps (High Level)
+# Step 13 – Create Launch Template
 
-1 Create VPC with public and private subnets  
-2 Create Internet Gateway and attach to VPC  
-3 Create NAT Gateway for private subnet internet access  
-4 Launch Bastion host in public subnet  
-5 Launch frontend and backend servers in private subnet  
-6 Install Nginx and deploy React application on frontend server  
-7 Deploy Node.js API on backend server  
-8 Install MongoDB on database server  
-9 Create Application Load Balancer  
-10 Configure ALB routing rules for frontend and API domains  
-11 Create Auto Scaling Group for backend servers  
+A launch template was created using the backend AMI.
+
+This ensures that new Auto Scaling instances start with the backend application already installed.
+
+![Launch Template](docs/images/autoscaling/lauhch-template.png)
 
 ---
 
-# Accessing Private Servers
+# Step 14 – Configure Scaling Policy
 
-Private servers are accessed using a Bastion host.
+Scaling policies were configured based on CPU utilization.
 
-SSH Flow:
+If CPU usage exceeds the threshold, the Auto Scaling Group launches a new backend instance automatically.
 
-Local Machine → Bastion Host → Private Server
+When load decreases, extra instances are terminated.
 
-This ensures private servers are never directly exposed to the internet.
-
----
-
-# Key DevOps Concepts Demonstrated
-
-VPC Network Architecture  
-Public vs Private Subnets  
-Application Load Balancing  
-Domain-based Routing  
-SSL using ACM  
-Auto Scaling Groups  
-Secure SSH using Bastion Host  
+![Scaling Policy](docs/images/autoscaling/scalling-policy.png)
 
 ---
 
-# Future Improvements
+# Project Structure
 
-Infrastructure as Code using Terraform  
-CI/CD pipeline using GitHub Actions  
-Blue-Green deployment strategy  
-Containerization using Docker  
-Kubernetes deployment using EKS  
+architecture/
+backend/
+frontend/
+deployment/
+scripts/
+docs/images/
+README.md
 
 ---
 
 # Author
 
 Sharan Kumar
-
 DevOps Engineer
+India
