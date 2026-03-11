@@ -20,7 +20,7 @@ https://vpc-setupapi.codetocloud.fun
 
 # Architecture Diagram
 
-![Architecture](docs/images/architecture-diagram.png)
+![Architecture](/docs/images/architecture/architecture-diagram.png)
 
 ---
 
