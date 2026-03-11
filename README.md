@@ -203,17 +203,6 @@ When load decreases, extra instances are terminated.
 
 ---
 
-# Project Structure
-
-architecture/
-backend/
-frontend/
-deployment/
-scripts/
-docs/images/
-README.md
-
----
 
 # Author
 
