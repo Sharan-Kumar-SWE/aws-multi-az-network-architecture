@@ -6,7 +6,7 @@ This project demonstrates how to deploy a secure and scalable web application ar
 
 # Architecture Diagram
 
-![Architecture Diagram](docs/images/architecture/architecture-diagram.png)
+![Architecture Diagram](docs/image/architecture/architecture-diagram.png)
 
 ---
 
